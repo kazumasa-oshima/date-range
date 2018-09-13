@@ -22,10 +22,6 @@ class DateRange implements IteratorAggregate
             throw new \InvalidArgumentException('cannot parse start and end date');
         }
 
-        if ($this->start->getTimestamp() > $this->end->getTimestamp()) {
-            throw new \InvalidArgumentException('end date is the day before than start date');
-        }
-
         $this->interval = new DateInterval(self::INTERVAL);
     }
 
@@ -34,8 +30,10 @@ class DateRange implements IteratorAggregate
         if (count($args) === 1) {
             list($this->start, $this->end) = self::getDateFromArray($args[0]);
         } elseif (count($args) === 2) {
-            $this->start = self::convertToDateTime($args[0]);
-            $this->end = self::convertToDateTime($args[1]);
+            list($this->start, $this->end) = self::compareAndSwapDate(
+                self::convertToDateTime($args[0]),
+                self::convertToDateTime($args[1])
+            );
         } else {
             throw new \InvalidArgumentException('Invalid number of arguments');
         }
@@ -43,15 +41,27 @@ class DateRange implements IteratorAggregate
 
     private static function getDateFromArray($startEndArray)
     {
-        $start = $end = null;
-
-        if (is_array($startEndArray) && count($startEndArray) === 2) {
-            $values = array_values($startEndArray);
-            $start = self::convertToDateTime($values[0]);
-            $end = self::convertToDateTime($values[1]);
+        if (!is_array($startEndArray) || count($startEndArray) !== 2) {
+            return [null, null];
         }
 
-        return [$start, $end];
+        $values = array_values($startEndArray);
+
+        return self::compareAndSwapDate(
+            self::convertToDateTime($values[0]),
+            self::convertToDateTime($values[1])
+        );
+    }
+
+    public static function compareAndSwapDate(DateTime $d1, DateTime $d2)
+    {
+        if ($d1 < $d2) {
+            return [$d1, $d2];
+        } elseif ($d1 > $d2) {
+            return [$d2, $d1];
+        }
+
+        return [$d1, $d2];
     }
 
     public function excludeStartDate()
