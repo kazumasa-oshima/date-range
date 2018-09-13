@@ -129,18 +129,13 @@ class DateRangeTest extends \PHPUnit_Framework_TestCase
         new DateRange(['today']);
     }
 
-    /** @test */
-    public function canSwapDates()
+    /**
+     * @test
+     * @expectedException InvalidArgumentException
+     */
+    public function shouldHaveEndDateIsAfterThanStartDate()
     {
-        $range = new DateRange(['2018-09-13', '2018-08-01']);
-        $this->assertSame(
-            '2018-08-01',
-            $range->getStart()->format('Y-m-d')
-        );
-        $this->assertSame(
-            '2018-09-13',
-            $range->getEnd()->format('Y-m-d')
-        );
+        new DateRange(['tomorrow', 'today']);
     }
 
     /** @test */
