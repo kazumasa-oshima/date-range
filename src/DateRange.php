@@ -14,6 +14,7 @@ class DateRange implements IteratorAggregate
     private $excludeStartDate = false;
     private $excludeEndDate = false;
     const INTERVAL = 'P1D';
+    const COMPARE_AND_SWAP = 'COMPARE_AND_SWAP';
 
     public function __construct() {
         $this->parseArguments(func_get_args());
@@ -36,9 +37,25 @@ class DateRange implements IteratorAggregate
         } elseif (count($args) === 2) {
             $this->start = self::convertToDateTime($args[0]);
             $this->end = self::convertToDateTime($args[1]);
+        } elseif (count($args) === 3 && $args[2] === self::COMPARE_AND_SWAP) {
+            list($this->start, $this->end) = self::compareAndSwapDate(
+                self::convertToDateTime($args[0]),
+                self::convertToDateTime($args[1])
+            );
         } else {
             throw new \InvalidArgumentException('Invalid number of arguments');
         }
+    }
+
+    public static function compareAndSwapDate(DateTime $d1, DateTime $d2)
+    {
+        if ($d1 < $d2) {
+            return [$d1, $d2];
+        } elseif ($d1 > $d2) {
+            return [$d2, $d1];
+        }
+
+        return [$d1, $d2];
     }
 
     private static function getDateFromArray($startEndArray)
